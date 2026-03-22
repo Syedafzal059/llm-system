@@ -4,7 +4,7 @@
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.109+-green.svg)](https://fastapi.tiangolo.com/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-**Production-grade LLM orchestration API** — a mini OpenAI-like backend with intelligent routing, in-memory caching, retry with fallback, and usage tracking.
+**Production-grade LLM orchestration API** — a mini OpenAI-like backend with intelligent routing, in-memory caching, retry with fallback, usage tracking, streaming, and batch inference.
 
 ---
 
@@ -32,6 +32,8 @@ This system exposes a **unified API** for text generation while abstracting mult
 | **In-memory caching** | Skip redundant model calls for repeated prompts |
 | **Retry + fallback** | 2 retries on primary failure, then fallback to cheap model |
 | **Usage tracking** | Log every request to CSV (timestamp, user, model, tokens, duration) |
+| **Streaming** | Token-by-token response via `POST /generate/stream` |
+| **Batch inference** | Process multiple prompts concurrently via `POST /generate/batch/` |
 | **Unified API** | Single `/generate` endpoint regardless of backend |
 
 ---
@@ -97,8 +99,9 @@ This system exposes a **unified API** for text generation while abstracting mult
 - [x] Fallback chain (cheap model as fallback)
 - [x] Usage tracking (CSV logging)
 - [x] Health check endpoint
+- [x] Streaming responses (`/generate/stream`)
+- [x] Batch inference (`/generate/batch/`)
 - [ ] Redis caching — *planned*
-- [ ] Streaming — *planned*
 
 ---
 
@@ -171,6 +174,45 @@ Generate text from a prompt. Uses cache when available; otherwise routes to mode
 - `len(prompt) >= 50` → Expensive model
 - Primary failure after 2 retries → Fallback (cheap)
 
+### `POST /generate/stream`
+
+Stream text token-by-token. Same routing rules apply.
+
+**Request:**
+
+```json
+{
+  "prompt": "Explain machine learning"
+}
+```
+
+**Response:** `text/plain` stream — tokens yielded as they are generated.
+
+### `POST /generate/batch/`
+
+Process multiple prompts concurrently. Returns results in the same order as the input.
+
+**Request:**
+
+```json
+{
+  "prompts": ["Hello", "What is AI?", "Explain quantum computing..."],
+  "user_id": "anonymous"
+}
+```
+
+**Response:**
+
+```json
+{
+  "responses": [
+    "[Cheap Model] Hello",
+    "[Cheap Model] What is AI?",
+    "[Expensive Model] Explain quantum computing..."
+  ]
+}
+```
+
 ### `GET /health`
 
 Health check for load balancers and monitoring.
@@ -193,10 +235,11 @@ llm-system/
 │   ├── main.py                   # FastAPI app entrypoint
 │   ├── routes/
 │   │   ├── __init__.py
-│   │   └── generate.py           # /generate endpoint
+│   │   ├── generate.py           # /generate + /generate/stream
+│   │   └── batch.py              # /generate/batch/
 │   ├── services/
-│   │   ├── models.py             # cheap_model, expensive_model (simulated)
-│   │   ├── router.py             # Routing + cache + retry + fallback
+│   │   ├── models.py             # cheap_model, expensive_model, expensive_model_stream
+│   │   ├── router.py             # route, stream_route, batch_route
 │   │   └── fallback.py           # fallback_model
 │   └── utils/
 │       ├── cache.py              # InMemoryCache
@@ -224,7 +267,8 @@ llm-system/
 - **Phase 2** — ✅ In-memory caching
 - **Phase 3** — ✅ Retry + fallback chain
 - **Phase 4** — ✅ Usage tracking (CSV)
-- **Phase 5** — Redis cache, streaming, Docker — *planned*
+- **Phase 5** — Redis cache, Docker — *planned*
+- **Phase 6** — ✅ Async, streaming, batch inference
 
 ---
 
