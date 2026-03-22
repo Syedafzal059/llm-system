@@ -25,6 +25,7 @@ Thumbs.db
 
 # Misc
 *.log
+usage.csv
 .pytest_cache/
 .coverage
 htmlcov/
