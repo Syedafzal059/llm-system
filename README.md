@@ -202,7 +202,6 @@ llm-system/
 │       ├── cache.py              # InMemoryCache
 │       └── file_usage_tracker.py  # CSV usage logging
 ├── requirements.txt
-├── PLAN.md                       # Full execution roadmap
 └── README.md
 ```
 
@@ -221,13 +220,11 @@ llm-system/
 
 ## Roadmap
 
-See [PLAN.md](./PLAN.md) for the full implementation roadmap:
-
 - **Phase 1** — ✅ Basic FastAPI + routing
 - **Phase 2** — ✅ In-memory caching
 - **Phase 3** — ✅ Retry + fallback chain
 - **Phase 4** — ✅ Usage tracking (CSV)
-- **Phase 5** — Redis cache, streaming, Docker
+- **Phase 5** — Redis cache, streaming, Docker — *planned*
 
 ---
 
