@@ -1,5 +1,5 @@
 import asyncio
-from app.services.models import cheap_model, expensive_model
+from app.services.models import cheap_model, expensive_model, expensive_model_stream
 from app.utils.cache import InMemoryCache
 from app.services.fallback import fallback_model
 from app.utils.file_usage_tracker import log_usage
@@ -42,3 +42,34 @@ class ModelRouter:
         self.cache.set(prompt, fallback_response)
         log_usage(prompt, "fallback_model", fallback_response, user_id)
         return f"[Fallback] {fallback_response}"
+
+    #Streaming version
+    async def stream_route(self, prompt: str):
+        if len(prompt) < self.threshold_length:
+            response = await cheap_model(prompt)
+            for token in response.split():
+                yield token +" "
+        else:
+            async for token in expensive_model_stream(prompt):
+                yield token + " "
+    
+    # Batch route function 
+    async def batch_route(self, prompts: list, user_id: str = "anonymous") -> list:
+        """
+        Run multiple prompts concurrency and return list of results
+        """
+
+        tasks = [self.route(p, user_id) for p in prompts]
+        results = await asyncio.gather(*tasks)
+        return results
+
+
+if __name__=="__main__":
+    from app.services.router import ModelRouter
+    import asyncio
+
+    prompts = ["Hello", "Explain routing logic in detail................... ", "Fallback test"]
+    model_router = ModelRouter()
+
+    results = asyncio.run(model_router.batch_route(prompts))
+    print(results)
