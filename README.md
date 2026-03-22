@@ -128,6 +128,15 @@ uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 
 API docs: **http://localhost:8000/docs**
 
+### Run with Docker
+
+```bash
+docker build -t llm-system .
+docker run -p 8000:8000 llm-system
+```
+
+API: **http://localhost:8000**
+
 ---
 
 ## API Reference
@@ -244,6 +253,8 @@ llm-system/
 │   └── utils/
 │       ├── cache.py              # InMemoryCache
 │       └── file_usage_tracker.py  # CSV usage logging
+├── Dockerfile
+├── .dockerignore
 ├── requirements.txt
 └── README.md
 ```
@@ -267,7 +278,7 @@ llm-system/
 - **Phase 2** — ✅ In-memory caching
 - **Phase 3** — ✅ Retry + fallback chain
 - **Phase 4** — ✅ Usage tracking (CSV)
-- **Phase 5** — Redis cache, Docker — *planned*
+- **Phase 5** — ✅ Docker containerization
 - **Phase 6** — ✅ Async, streaming, batch inference
 
 ---
